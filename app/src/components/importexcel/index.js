@@ -102,14 +102,7 @@ class App extends React.Component {
     const current = this.state.current - 1;
     this.setState({ current });
   }
-	// onimportfinished(){
-	// 	this.setState({
-	// 		isimporting:false,
-	// 		importresult:{
-	// 			issuccess:true
-	// 		}
-	// 	 });
-	// }
+
   render() {
     const { data,cols,current,isnextbtnenabled,isimporting,importresult} = this.state;
 		let icon = <Icon type="loading" />;
@@ -135,7 +128,7 @@ class App extends React.Component {
       content: <StartImport isimporting={isimporting} result={importresult}/>,
     }];
 
-		const isshowprev = current > 0 && current < 2;
+		let isshowprev = current > 0 && current < 2;
 		const isshownext = current < steps.length - 1;
 		const ishowfinished = current === steps.length - 1 && !isimporting;
 		let statusstring = 'process';//wait process finish error
@@ -152,17 +145,20 @@ class App extends React.Component {
 		else if(current === 2){
 			steps[0].statusstring = 'finish';
 			steps[1].statusstring = 'finish';
-			if(!this.state.isimporting){
-				if(!this.state.importresult.issuccess){
+			if(!isimporting){
+				if(!importresult.issuccess){
 					steps[2].statusstring = 'error';
 				}
 				else{
 					steps[2].statusstring = 'finish';
 				}
 			}
-			else{
-				//isimporting
+			else{//isimporting
 				steps[2].statusstring = 'process';
+			}
+
+			if(steps[2].statusstring === 'error'){
+				isshowprev = true;
 			}
 		}
     return (
