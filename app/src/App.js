@@ -49,6 +49,7 @@ class App extends Component {
           <Button type="primary"  onClick={this.showModal}>导入EXCEL</Button>
         </div>
         <Modal
+          destroyOnClose={true}
           title="导入EXCEL"
           width={800}
           visible={this.state.visible}

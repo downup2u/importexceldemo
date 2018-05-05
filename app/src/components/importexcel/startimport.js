@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Steps, Button, message,Alert } from 'antd';
+import { Steps, Button, Spin, message,Alert } from 'antd';
 
 class StartImport extends React.Component {
 	constructor(props) {
@@ -8,9 +8,20 @@ class StartImport extends React.Component {
 
 
 	render() {
+		const {isimporting,result} = this.props;
+		if(isimporting){
+			return (<Spin tip="正在导入请稍后...">
+						  </Spin>);
+		}
+		if(result.issuccess){
+			return (
+				<Alert message={`${result.textmsg}`} type="success" showIcon />
+			);
+		}
 		return (
-			<Alert message="导入成功" type="success" showIcon />
+			<Alert message={`${result.textmsg}`} type="error" showIcon />
 		);
+
 	};
 
 }
