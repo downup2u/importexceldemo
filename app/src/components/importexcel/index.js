@@ -31,12 +31,14 @@ class App extends React.Component {
       cols: [],  /* Array of column objects e.g. { name: "C", K: 2 } */
 			isimporting:false,
 			isnextbtnenabled:false,
-			importresult:{}
+			importresult:{},
+			selectfile:''
     };
     this.handleFile = this.handleFile.bind(this);
   }
   handleFile(file/*:File*/)
   {
+		console.log(file.name);
 		/* Boilerplate to set up FileReader */
 		const reader = new FileReader();
 		const rABS = !!reader.readAsBinaryString;
@@ -50,7 +52,9 @@ class App extends React.Component {
 			/* Convert array of arrays */
 			const data = XLSX.utils.sheet_to_json(ws, {header:1});
 			/* Update state */
-			this.setState({ data: data, cols: make_cols(ws['!ref']),isnextbtnenabled:true });
+			console.log(file.name);
+			this.setState({ data: data, cols: make_cols(ws['!ref']),
+			isnextbtnenabled:true,selectfile:file.name });
 		};
 		if(rABS) {
       reader.readAsBinaryString(file);
@@ -104,7 +108,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { data,cols,current,isnextbtnenabled,isimporting,importresult} = this.state;
+    const { data,cols,current,isnextbtnenabled,isimporting,importresult,selectfile} = this.state;
 		let icon = <Icon type="loading" />;
 		if(!isimporting){
 			if(importresult.issuccess){
@@ -117,7 +121,7 @@ class App extends React.Component {
     let steps = [{
       title: '选择文件',
 			icon:<Icon type="file-excel" />,
-      content: <DataInput handleFile={this.handleFile} />,
+      content: <DataInput handleFile={this.handleFile} selectfile={selectfile}/>,
     }, {
       title: '编辑数据',
 			icon:<Icon type="edit" />,
@@ -166,7 +170,11 @@ class App extends React.Component {
         <Steps current={current}>
           {steps.map(item => <Step key={item.title} title={item.title} icon={item.icon}  status={item.statusstring}/>)}
         </Steps>
-        <div className="steps-content">{steps[current].content}</div>
+        <div className="steps-content">
+
+						{steps[current].content}
+
+					</div>
         <div className="steps-action">
 					{
 						isshowprev

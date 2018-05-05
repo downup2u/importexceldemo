@@ -52,16 +52,22 @@ class DataInput extends React.Component {
 	handleChange(e) {
 		const files = e.target.files;
 		if(files && files[0]) {
+
+			console.log(files[0].name);
 			this.props.handleFile(files[0]);
 		}
 	};
 	render() {
+		console.log(this.props.selectfile);
 		return (
-			<form className="form-inline">
 				<div className="form-group">
-					<input type="file" className="form-control" id="file" accept={SheetJSFT} onChange={this.handleChange} />
+					<div>{this.props.selectfile}</div>
+					<input type="file" className="form-control" id="file"
+						accept={SheetJSFT} onChange={this.handleChange}
+						filename={this.props.selectfile}
+					/>
 				</div>
-			</form>
+
 		);
 	};
 }
