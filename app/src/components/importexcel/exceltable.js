@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { Table } from 'antd';
+import { Table, Popconfirm } from 'antd';
 import EditableCell from './edittablecell';
+import './andtable.css';
 /*
   Simple HTML Table
   usage: <OutTable data={data} cols={cols} />
@@ -11,48 +12,96 @@ import EditableCell from './edittablecell';
 class OutTable extends React.Component {
 	constructor(props) {
 		super(props);
-		const {data} = this.props;
-		let dataSource = [];
-		if(data.length > 1){
-			for(let i = 1 ;i < data.length ; i ++){
-				let dataitem = {
-					key:`${i}`
-				};
-				for(let j = 0 ;j < data[0].length ;j ++){
-					dataitem[data[0][j]] = data[i][j];
-				}
-				dataSource.push(dataitem)
-			}
-		}
-		this.state = {
-			dataSource
-		}
+		const {excel_dataSource} = this.props;
+		this.cacheData = excel_dataSource.map(item => ({ ...item }));
 	}
 
-	render() {
-		const {data} = this.props;
-		const {dataSource} = this.state;
-
-		let columns = [];
-		if(data.length > 0){
-			for(let i = 0 ;i < data[0].length ;i ++){
-				columns.push({
-					 title: data[0][i],
-					 dataIndex: data[0][i],
-					 key: data[0][i],
-				})
+	renderColumns(text, record, column) {
+			return (
+				<EditableCell
+					editable={record.editable}
+					value={text}
+					onChange={value => this.handleChange(value, record.key, column)}
+				/>
+			);
+		}
+		handleChange(value, key, column) {
+			const newData = [...this.props.excel_dataSource];
+			const target = newData.filter(item => key === item.key)[0];
+			if (target) {
+				target[column] = value;
+				this.props.onChangeExcelDataSource(newData);
+			}
+		}
+		edit(key) {
+			const newData =  [...this.props.excel_dataSource];
+			const target = newData.filter(item => key === item.key)[0];
+			if (target) {
+				target.editable = true;
+				this.props.onChangeExcelDataSource(newData);
+			}
+		}
+		save(key) {
+			const newData =  [...this.props.excel_dataSource];
+			const target = newData.filter(item => key === item.key)[0];
+			if (target) {
+				delete target.editable;
+				this.props.onChangeExcelDataSource(newData);
+				this.cacheData = newData.map(item => ({ ...item }));
+			}
+		}
+		cancel(key) {
+			const newData =  [...this.props.excel_dataSource];
+			const target = newData.filter(item => key === item.key)[0];
+			if (target) {
+				Object.assign(target, this.cacheData.filter(item => key === item.key)[0]);
+				delete target.editable;
+				this.props.onChangeExcelDataSource(newData);
 			}
 		}
 
-		console.log(columns);
-		console.log(dataSource);
+		render() {
+			const {data,excel_dataSource:dataSource,excel_columns} = this.props;
+			// const {dataSource} = this.state;
+			let columns = [];
+			if(excel_columns.length > 0){
+				for(let i = 0 ;i < excel_columns.length ;i ++){
+					columns.push({
+						 title: excel_columns[i],
+						 dataIndex: excel_columns[i],
+						 key: excel_columns[i],
+						 render: (text, record) => this.renderColumns(text, record, excel_columns[i]),
+					})
+				}
+			}
 
-    return (
-        <div className="table-responsive">
-        	<Table dataSource={dataSource} columns={columns} />
-        </div>
-  	);
-  };
+			columns.push({
+	      title: 'operation',
+	      dataIndex: 'operation',
+	      render: (text, record) => {
+	        const { editable } = record;
+	        return (
+	          <div className="editable-row-operations">
+	            {
+	              editable ?
+	                <span>
+	                  <a onClick={() => this.save(record.key)}>Save</a>
+	                  <Popconfirm title="Sure to cancel?" onConfirm={() => this.cancel(record.key)}>
+	                    <a>Cancel</a>
+	                  </Popconfirm>
+	                </span>
+	                : <a onClick={() => this.edit(record.key)}>Edit</a>
+	            }
+	          </div>
+	        );
+	      },
+	    });
+	    return (
+	        <div className="table-responsive">
+	        	<Table dataSource={dataSource} columns={columns} />
+	        </div>
+	  	);
+	  };
 };
 
 export default OutTable;

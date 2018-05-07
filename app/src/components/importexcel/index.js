@@ -27,12 +27,12 @@ class App extends React.Component {
     super(props);
     this.state = {
       current: 0,
-      data: [], /* Array of Arrays e.g. [["a","b"],[1,2]] */
-      cols: [],  /* Array of column objects e.g. { name: "C", K: 2 } */
+			excel_columns:[],
+      excel_dataSource: [], /* Array of Arrays e.g. [["a","b"],[1,2]] */
 			isimporting:false,
 			isnextbtnenabled:false,
 			importresult:{},
-			selectfile:''
+			selectfile:'',
     };
     this.handleFile = this.handleFile.bind(this);
   }
@@ -53,7 +53,27 @@ class App extends React.Component {
 			const data = XLSX.utils.sheet_to_json(ws, {header:1});
 			/* Update state */
 			console.log(file.name);
-			this.setState({ data: data, cols: make_cols(ws['!ref']),
+			let excel_columns = [];
+			let excel_dataSource = [];
+			if(data.length > 0){
+				for(let i = 0 ;i < data[0].length ;i ++){
+					excel_columns.push(data[0][i]);
+				}
+			}
+			if(data.length > 1){
+				for(let i = 1 ;i < data.length ; i ++){
+					let dataitem = {
+						key:`${i}`
+					};
+					for(let j = 0 ;j < data[0].length ;j ++){
+						dataitem[data[0][j]] = data[i][j];
+					}
+					excel_dataSource.push(dataitem)
+				}
+			}
+
+
+			this.setState({ excel_columns,excel_dataSource,
 			isnextbtnenabled:true,selectfile:file.name });
 		};
 		if(rABS) {
@@ -71,7 +91,13 @@ class App extends React.Component {
 		}
 		else if(current === 2){
 			this.setState({ current,isimporting:true });
-			fetchimportfile(this.state.data).then((result)=>{
+			const {excel_dataSource} = this.state;
+			// let data = [];
+			// data.push(excel_columns);
+			// for(let i = 0 ;i < excel_dataSource.length ;i ++){
+			// 	excel_columns.push(excel_dataSource[i]);
+			// }
+			fetchimportfile(excel_dataSource).then((result)=>{
 				if(result.issuccess){
 					this.setState({
 						isimporting:false,
@@ -107,8 +133,12 @@ class App extends React.Component {
     this.setState({ current });
   }
 
+	onChangeExcelDataSource = (excel_dataSource)=>{
+		this.setState({excel_dataSource});
+	}
+
   render() {
-    const { data,cols,current,isnextbtnenabled,isimporting,importresult,selectfile} = this.state;
+    const { excel_dataSource,excel_columns,current,isnextbtnenabled,isimporting,importresult,selectfile} = this.state;
 		let icon = <Icon type="loading" />;
 		if(!isimporting){
 			if(importresult.issuccess){
@@ -125,7 +155,7 @@ class App extends React.Component {
     }, {
       title: '编辑数据',
 			icon:<Icon type="edit" />,
-      content: <OutTable data={data} cols={cols} />,
+      content: <OutTable excel_dataSource={excel_dataSource} excel_columns={excel_columns} onChangeExcelDataSource={this.onChangeExcelDataSource}/>,
     }, {
       title: isimporting?'导入中':'导入完成',
 			icon:icon,

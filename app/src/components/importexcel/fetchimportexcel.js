@@ -1,5 +1,6 @@
 let i = 0;
 const fetchimportfile = (jsondata)=>{
+  console.log(jsondata);
   return new Promise((resolve,reject) => {
     setTimeout(()=>{
       i++;
